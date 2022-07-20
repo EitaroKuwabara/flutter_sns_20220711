@@ -1,0 +1,176 @@
+<html>
+<head>
+<title>create_account_page.dart</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #a9b7c6;}
+.s1 { color: #6a8759;}
+.s2 { color: #cc7832;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+create_account_page.dart</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">'dart:io'</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">'package:firebase_auth/firebase_auth.dart'</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">'package:firebase_storage/firebase_storage.dart'</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">'package:flutter/material.dart'</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">'package:flutter_sns_20220711/utils/authentication.dart'</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">'package:flutter_sns_20220711/utils/firestore/users.dart'</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">'package:image_picker/image_picker.dart'</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">'../../model/account.dart'</span><span class="s2">;</span>
+
+<span class="s2">class </span><span class="s0">CreateAccountPage </span><span class="s2">extends </span><span class="s0">StatefulWidget {</span>
+  <span class="s2">const </span><span class="s0">CreateAccountPage({Key? key}) : </span><span class="s2">super</span><span class="s0">(key: key)</span><span class="s2">;</span>
+
+  <span class="s0">@override</span>
+  <span class="s0">State&lt;CreateAccountPage&gt; createState() =&gt; _CreateAccountPageState()</span><span class="s2">;</span>
+<span class="s0">}</span>
+
+<span class="s2">class </span><span class="s0">_CreateAccountPageState </span><span class="s2">extends </span><span class="s0">State&lt;CreateAccountPage&gt; {</span>
+  <span class="s0">TextEditingController nameController = TextEditingController()</span><span class="s2">;</span>
+  <span class="s0">TextEditingController userIdController = TextEditingController()</span><span class="s2">;</span>
+  <span class="s0">TextEditingController selfIntroductionController = TextEditingController()</span><span class="s2">;</span>
+  <span class="s0">TextEditingController passController = TextEditingController()</span><span class="s2">;</span>
+  <span class="s0">TextEditingController emailController = TextEditingController()</span><span class="s2">;</span>
+  <span class="s0">File? image</span><span class="s2">;</span>
+  <span class="s0">ImagePicker picker = ImagePicker()</span><span class="s2">;</span>
+
+  <span class="s3">// 画像を取得するメソッド</span>
+  <span class="s0">Future&lt;</span><span class="s2">void</span><span class="s0">&gt; getImageFromGallery() async {</span>
+    <span class="s2">final </span><span class="s0">pickedFile = await picker.pickImage(source: ImageSource.gallery)</span><span class="s2">;</span>
+    <span class="s2">if </span><span class="s0">(pickedFile != </span><span class="s2">null</span><span class="s0">) {</span>
+      <span class="s0">setState(() {</span>
+        <span class="s0">image = File(pickedFile.path)</span><span class="s2">;</span>
+      <span class="s0">})</span><span class="s2">;</span>
+    <span class="s0">}</span>
+  <span class="s0">}</span>
+
+  <span class="s0">Future&lt;String&gt; uploadImage(String uid) async {</span>
+    <span class="s2">final </span><span class="s0">FirebaseStorage storageInstance = FirebaseStorage.instance</span><span class="s2">;</span>
+    <span class="s2">final </span><span class="s0">Reference ref = storageInstance.ref()</span><span class="s2">;</span>
+    <span class="s0">await ref.child(uid).putFile(image!)</span><span class="s2">;</span>
+    <span class="s3">// 画像のアップロード先のリンク</span>
+    <span class="s0">String downloadUrl = await storageInstance.ref(uid).getDownloadURL()</span><span class="s2">;</span>
+    <span class="s0">print(</span><span class="s1">&quot;image_path: </span><span class="s0">$downloadUrl</span><span class="s1">&quot;</span><span class="s0">)</span><span class="s2">;</span>
+    <span class="s2">return </span><span class="s0">downloadUrl</span><span class="s2">;</span>
+  <span class="s0">}</span>
+
+  <span class="s0">@override</span>
+  <span class="s0">Widget build(BuildContext context) {</span>
+    <span class="s2">return </span><span class="s0">Scaffold(</span>
+      <span class="s0">appBar: AppBar(</span>
+        <span class="s0">backgroundColor: Colors.transparent</span><span class="s2">,</span>
+        <span class="s0">elevation: </span><span class="s4">0</span><span class="s2">,</span>
+        <span class="s0">iconTheme: </span><span class="s2">const </span><span class="s0">IconThemeData(color: Colors.black)</span><span class="s2">,</span>
+        <span class="s0">title: </span><span class="s2">const </span><span class="s0">Text(</span>
+          <span class="s1">&quot;REGISTER&quot;</span><span class="s2">,</span>
+          <span class="s0">style: TextStyle(color: Colors.black)</span><span class="s2">,</span>
+        <span class="s0">)</span><span class="s2">,</span>
+        <span class="s0">centerTitle: </span><span class="s2">true,</span>
+      <span class="s0">)</span><span class="s2">,</span>
+      <span class="s0">body: SingleChildScrollView(</span>
+        <span class="s0">child: Container(</span>
+          <span class="s0">width: double.infinity</span><span class="s2">,</span>
+          <span class="s0">child: Column(</span>
+            <span class="s0">children: [</span>
+              <span class="s2">const </span><span class="s0">SizedBox(height: </span><span class="s4">30</span><span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">GestureDetector(</span>
+                <span class="s0">onTap: () {</span>
+                  <span class="s0">getImageFromGallery()</span><span class="s2">;</span>
+                <span class="s0">}</span><span class="s2">,</span>
+                <span class="s0">child: CircleAvatar(</span>
+                  <span class="s0">foregroundImage: image == </span><span class="s2">null </span><span class="s0">? </span><span class="s2">null </span><span class="s0">: FileImage(image!)</span><span class="s2">,</span>
+                  <span class="s0">radius: </span><span class="s4">40</span><span class="s2">,</span>
+                  <span class="s0">child: </span><span class="s2">const </span><span class="s0">Icon(Icons.add)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">Container(</span>
+                <span class="s0">width: </span><span class="s4">300</span><span class="s2">,</span>
+                <span class="s0">child: TextField(</span>
+                  <span class="s0">controller: nameController</span><span class="s2">,</span>
+                  <span class="s0">decoration: </span><span class="s2">const </span><span class="s0">InputDecoration(hintText: </span><span class="s1">&quot;NAME&quot;</span><span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">Padding(</span>
+                <span class="s0">padding: </span><span class="s2">const </span><span class="s0">EdgeInsets.symmetric(vertical: </span><span class="s4">20.0</span><span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">child: Container(</span>
+                  <span class="s0">width: </span><span class="s4">300</span><span class="s2">,</span>
+                  <span class="s0">child: TextField(</span>
+                    <span class="s0">controller: userIdController</span><span class="s2">,</span>
+                    <span class="s0">decoration: </span><span class="s2">const </span><span class="s0">InputDecoration(hintText: </span><span class="s1">&quot;USER ID&quot;</span><span class="s0">)</span><span class="s2">,</span>
+                  <span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">Container(</span>
+                <span class="s0">width: </span><span class="s4">300</span><span class="s2">,</span>
+                <span class="s0">child: TextField(</span>
+                  <span class="s0">controller: selfIntroductionController</span><span class="s2">,</span>
+                  <span class="s0">decoration:</span>
+                      <span class="s2">const </span><span class="s0">InputDecoration(hintText: </span><span class="s1">&quot;SELF INTRODUCTION&quot;</span><span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">Padding(</span>
+                <span class="s0">padding: </span><span class="s2">const </span><span class="s0">EdgeInsets.symmetric(vertical: </span><span class="s4">20.0</span><span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">child: Container(</span>
+                  <span class="s0">width: </span><span class="s4">300</span><span class="s2">,</span>
+                  <span class="s0">child: TextField(</span>
+                    <span class="s0">controller: emailController</span><span class="s2">,</span>
+                    <span class="s0">decoration: </span><span class="s2">const </span><span class="s0">InputDecoration(hintText: </span><span class="s1">&quot;EMAIL&quot;</span><span class="s0">)</span><span class="s2">,</span>
+                  <span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">Container(</span>
+                <span class="s0">width: </span><span class="s4">300</span><span class="s2">,</span>
+                <span class="s0">child: TextField(</span>
+                  <span class="s0">controller: passController</span><span class="s2">,</span>
+                  <span class="s0">decoration: </span><span class="s2">const </span><span class="s0">InputDecoration(hintText: </span><span class="s1">&quot;PASSWORD&quot;</span><span class="s0">)</span><span class="s2">,</span>
+                <span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">)</span><span class="s2">,</span>
+              <span class="s2">const </span><span class="s0">SizedBox(height: </span><span class="s4">50</span><span class="s0">)</span><span class="s2">,</span>
+              <span class="s0">ElevatedButton(</span>
+                  <span class="s0">onPressed: () async {</span>
+                    <span class="s3">// 全部入力されていたら戻れる</span>
+                    <span class="s2">if </span><span class="s0">(nameController.text.isNotEmpty &amp;&amp;</span>
+                        <span class="s0">userIdController.text.isNotEmpty &amp;&amp;</span>
+                        <span class="s0">selfIntroductionController.text.isNotEmpty &amp;&amp;</span>
+                        <span class="s0">emailController.text.isNotEmpty &amp;&amp;</span>
+                        <span class="s0">passController.text.isNotEmpty &amp;&amp;</span>
+                        <span class="s0">image != </span><span class="s2">null</span><span class="s0">) {</span>
+                      <span class="s2">var </span><span class="s0">result = await Authentication.signUp(</span>
+                          <span class="s0">email: emailController.text</span><span class="s2">,</span>
+                          <span class="s0">pass: passController.text)</span><span class="s2">;</span>
+                      <span class="s2">if </span><span class="s0">(result </span><span class="s2">is </span><span class="s0">UserCredential) {</span>
+                        <span class="s0">String imagePath = await uploadImage(result.user!.uid)</span><span class="s2">;</span>
+                        <span class="s0">Account newAccount = Account(</span>
+                          <span class="s0">id: result.user!.uid</span><span class="s2">,</span>
+                          <span class="s0">name: nameController.text</span><span class="s2">,</span>
+                          <span class="s0">userId: userIdController.text</span><span class="s2">,</span>
+                          <span class="s0">selfIntroduction: selfIntroductionController.text</span><span class="s2">,</span>
+                          <span class="s0">imagePath: imagePath</span><span class="s2">,</span>
+                        <span class="s0">)</span><span class="s2">;</span>
+                        <span class="s2">var </span><span class="s0">_result = await UserFirestore.setUser(newAccount)</span><span class="s2">;</span>
+                        <span class="s2">if </span><span class="s0">(_result == </span><span class="s2">true</span><span class="s0">) {</span>
+                          <span class="s0">Navigator.pop(context)</span><span class="s2">;</span>
+                        <span class="s0">}</span>
+                      <span class="s0">}</span>
+                    <span class="s0">}</span>
+                  <span class="s0">}</span><span class="s2">,</span>
+                  <span class="s0">child: </span><span class="s2">const </span><span class="s0">Text(</span><span class="s1">&quot;アカウント作成&quot;</span><span class="s0">))</span>
+            <span class="s0">]</span><span class="s2">,</span>
+          <span class="s0">)</span><span class="s2">,</span>
+        <span class="s0">)</span><span class="s2">,</span>
+      <span class="s0">)</span><span class="s2">,</span>
+    <span class="s0">)</span><span class="s2">;</span>
+  <span class="s0">}</span>
+<span class="s0">}</span>
+</pre>
+</body>
+</html>
